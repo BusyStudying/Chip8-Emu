@@ -1,1 +1,1 @@
-hello george
+Chip 8 emulator with python based chip 8 assembler
