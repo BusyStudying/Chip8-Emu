@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
+
 //using namespace std;
 Chip8::Chip8(){}
 
@@ -31,6 +33,97 @@ void Chip8::print_memory() {
         std::cout << (int)mem[i] << " ";
         
     }
+}
+
+void Chip8::fetch() {
+    instruction = (mem[pc] << 8) + (mem[pc + 1]);
+    pc += 2;
+}
+
+void Chip8::decode_execute() {
+    switch((instruction & 0xF000) >> 12) {
+        case 0:
+            if (instruction & 0x000F == 0) {
+                CLS_00E0();
+                break;
+            } else {
+                RET_00EE();
+                break;
+            }
+        case 1:
+            JP_1nnn();
+            break;
+        case 2:
+            CALL_2nnn();
+            break;
+        case 3:
+            SE_3xkk();
+            break;
+        case 4:
+            SNE_4xkk();
+            break;
+        case 5:
+            SE_5xy0();
+            break;
+        case 6:
+            LD_6xkk();
+            break;
+        case 7:
+            ADD_7xkk();
+            break;
+        case 8:
+            switch (instruction & 0x000F) {
+                case 0:
+                    LD_8xy0();
+                    break;
+                case 1:
+                    OR_8xy1();
+                    break;
+                case 2:
+                    AND_8xy2();
+                    break;
+                case 3:
+                    XOR_8xy3();
+                    break;
+                case 4:
+                    ADD_8xy4();
+                    break;
+                case 5:
+                    SUB_8xy5();
+                    break;
+                case 6:
+                    SHR_8xy6();
+                    break;
+                case 7:
+                    SUBN_8xy7();
+                    break;
+                case 14:
+                    SHL_8xyE();
+                    break;
+                default:
+                    NOP();
+                    break;
+            }
+            break;
+        case 9:
+            SNE_9xy0();
+            break;
+        case 10:
+            LD_Annn();
+            break;
+        case 11:
+            JP_Bnnn();
+            break;
+        case 12:
+            RND_Cxkk();
+            break;
+        default:
+            NOP();
+            break;
+    }
+}
+void Chip8::NOP() {
+
 }
 void Chip8::CLS_00E0(){
     //Clear Display
@@ -128,4 +221,32 @@ void Chip8::SUBN_8xy7(){
         VF = 0;
     }
     register_file[(instruction & 0x0F00) >> 8] = register_file[(instruction & 0x00F0) >> 4] - register_file[(instruction & 0x0F00) >> 8];
+}
+
+void Chip8::SHL_8xyE(){
+    if (register_file[(instruction & 0x0F00) >> 8] & 1) {
+        VF = 0;
+
+    } else {
+        VF = 1;
+    }
+    register_file[(instruction & 0x0F00) >> 8] = register_file[(instruction & 0x0F00) >> 8] << 1;
+}
+void Chip8::SNE_9xy0() { 
+    if(register_file[(instruction & 0x0F00) >> 8] != register_file[(instruction & 0x0F00) >> 4]) {
+        pc += 2;
+    } 
+}
+void Chip8::LD_Annn() {
+    registerI = instruction & 0x0FFF;
+
+}
+void Chip8::JP_Bnnn() {
+    pc = register_file[0] + (instruction & 0x0FFF);
+}
+void Chip8::RND_Cxkk() { 
+    register_file[(instruction & 0x0F00) >> 8] = (rand() % 256) & (instruction & 0x0FF);
+}
+void Chip8::DRW_Dxyn(){
+    //skip for now
 }

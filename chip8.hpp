@@ -6,6 +6,7 @@ const unsigned int BEGIN_PROGRAM_ADDR = 0x200;
 const unsigned int REGISTERS = 16;
 const unsigned int DISPLAY_HEIGHT = 6;
 const unsigned int DISPLAY_WIDTH = 32;
+
 class Chip8 {
 public:
     Chip8();
@@ -22,7 +23,9 @@ private:
     unsigned char ST;
     uint32_t display[DISPLAY_WIDTH][DISPLAY_HEIGHT];
     uint16_t instruction;
+    uint16_t registerI;
 
+    void Chip8::NOP();
     void Chip8::CLS_00E0();
     void Chip8::RET_00EE();
     void Chip8::JP_1nnn();
@@ -40,6 +43,14 @@ private:
     void Chip8::SUB_8xy5();
     void Chip8::SHR_8xy6();
     void Chip8::SUBN_8xy7();
+    void Chip8::SHL_8xyE();
+    void Chip8::SNE_9xy0();
+    void Chip8::LD_Annn();
+    void Chip8::JP_Bnnn();
+    void Chip8::RND_Cxkk();
+    void Chip8::DRW_Dxyn();
+    void Chip8::fetch();
+    void Chip8::decode_execute();
     
 };
 #endif
