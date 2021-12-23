@@ -16,11 +16,11 @@ def assemble(source):
     bytes = []
     line_number = 1
     for instruction in source.readlines():
+        if instruction == None:
+            continue
         if ';' in instruction:
             instruction = instruction[0:instruction.index(';')]
         instruction_list = instruction.split(', ')
-        
-
         try:
             word = instruction_table[instruction_list[0]]
             operand_list = instruction_operands[instruction_list[0]]
@@ -31,29 +31,35 @@ def assemble(source):
             sys.exit("invalid number of operands" + "\nOn line: " + str(line_number))
 
 
-        if operand_list[0] > 1 and operand_list[1] == True:
+        if operand_list[0] > 0 and operand_list[1] == True:
             try:
-                word += int((register_file[instruction_list[1]] << 8))
+                word += int(register_file[instruction_list[1]] << 8)
             except:
                 sys.exit("Invalid register " + str(instruction_list[1]) + "\nOn line: " + str(line_number))
-        if operand_list[0] > 2 and operand_list[2] == True:
+        if operand_list[0] > 1 and operand_list[2] == True:
             try:
                 word += int((register_file[instruction_list[2]] << 4))
             except:
                 sys.exit("Invalid register " + str(instruction_list[2]) + "\nOn line: " + str(line_number))        
-        if operand_list[0] > 3 and operand_list[3] == True:
-            if instruction_list[3].isnumeric() == True:
-                word += int(instruction_list[3])
-            else:
-                sys.exit("Invalid immediate value " + str(instruction_list[3]) + "\nOn line: " + str(line_number))
-        if operand_list[0] > 3 and operand_list[4] == True:
-            if instruction_list[3].isnumeric() == True:
-                word += int(instruction_list[3])
-            else:
-                sys.exit("Invalid immediate value " + str(instruction_list[3]) + "\nOn line: " + str(line_number))
+        if operand_list[0] > 1 and operand_list[3] == True:
+            try:
+                value = int(instruction_list[2])
+                word += value
+            except:
+                sys.exit("Invalid immediate value " + str(instruction_list[2]) + "\nOn line: " + str(line_number))
+        if operand_list[0] > 1 and operand_list[4] == True:
+            try:
+                value = int(instruction_list[2])
+                word += value
+            except:
+                sys.exit("Invalid immediate value " + str(instruction_list[2]) + "\nOn line: " + str(line_number))
 
-        bytes.append((word >> 2) & 0x00FF)
+                
+                
+        bytes.append((word >> 8) & 0x00FF)
         bytes.append(word & 0x00FF)
+        print(hex(word))
+        print(bytes)
         line_number += 1
 
     return bytes
