@@ -7,7 +7,7 @@ def main():
     args = parser.parse_args()
     #f = args.output
     bytes = assemble(args.input)
-    bytes_to_write = bytes(bytearray(bytes))
+    bytes_to_write = bytearray(bytes)
     with open('output.txt', "wb") as f:
         f.write(bytes_to_write)
     f.close()
@@ -18,7 +18,8 @@ def assemble(source):
     for instruction in source.readlines():
         if ';' in instruction:
             instruction = instruction[0:instruction.index(';')]
-        instruction_list = instruction.split(',')
+        instruction_list = instruction.split(', ')
+        
 
         try:
             word = instruction_table[instruction_list[0]]
@@ -30,22 +31,22 @@ def assemble(source):
             sys.exit("invalid number of operands" + "\nOn line: " + str(line_number))
 
 
-        if operand_list[1] == True:
+        if operand_list[0] > 1 and operand_list[1] == True:
             try:
                 word += int((register_file[instruction_list[1]] << 8))
             except:
                 sys.exit("Invalid register " + str(instruction_list[1]) + "\nOn line: " + str(line_number))
-        if operand_list[2] == True:
+        if operand_list[0] > 2 and operand_list[2] == True:
             try:
                 word += int((register_file[instruction_list[2]] << 4))
             except:
-                sys.exit("Invalid register " + str(instruction_list[2]) + "\nOn line: " + str(line_number))
-        if operand_list[3] == True:
+                sys.exit("Invalid register " + str(instruction_list[2]) + "\nOn line: " + str(line_number))        
+        if operand_list[0] > 3 and operand_list[3] == True:
             if instruction_list[3].isnumeric() == True:
                 word += int(instruction_list[3])
             else:
                 sys.exit("Invalid immediate value " + str(instruction_list[3]) + "\nOn line: " + str(line_number))
-        if operand_list[4] == True:
+        if operand_list[0] > 3 and operand_list[4] == True:
             if instruction_list[3].isnumeric() == True:
                 word += int(instruction_list[3])
             else:
