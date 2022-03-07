@@ -12,4 +12,7 @@ int main(int argc, char** argv) {
     Chip8 chip8;
     chip8.Load_ROM(romFilename);
     chip8.print_memory();
+    chip8.print_registers();
+    chip8.cycle();
+    chip8.print_registers();
 }

@@ -2,15 +2,15 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
-
+#include <iomanip>
 
 Chip8::Chip8() {
-    //pc = 0x200;
+    pc = 0x200;
     //instruction = (mem[0x200] << 8) + mem[0x201];
 }
 
 void Chip8::Load_ROM(const char *filename) {
-    std::cout << filename << std::endl;
+    std::cout << "Loading \"" << filename << "\" into memory" << std::endl;
     std::ifstream fin(filename, std::ios::in|std::ios::binary|std::ios::ate);
     if (fin.is_open()) {
         std::streampos size = fin.tellg();
@@ -19,7 +19,7 @@ void Chip8::Load_ROM(const char *filename) {
         fin.read(buffer, size);
         fin.close();
         
-        for (int i = 0; buffer[i] != '\0'; i++) {
+        for (int i = 0; i < size; i++) {
             mem[BEGIN_PROGRAM_ADDR + i] = buffer[i];
         }
         delete[] buffer;
@@ -32,12 +32,27 @@ void Chip8::Load_ROM(const char *filename) {
 void Chip8::print_memory() {
     //print program space in memory
     for (int i = 0x200; i < 0x600; i++) {
-        std::cout << std::hex << (int)mem[i] << " ";
-        if (i % 20 == 0) {
+        if ((i - 0x200) % 8 == 0) {
             std::cout << std::endl;
         } 
+        std::cout << std::setw(3) << std::hex << (int)mem[i] << " ";
+        
     }
-    std::cout << "FINISHED\n";
+    std::cout << "\nFINISHED\n";
+}
+
+void Chip8::print_registers() {
+    std::cout << "   PC: " << pc;
+    std::cout << "    SP: " << (unsigned int)sp << std::endl;
+    for (int i = 0; i < REGISTERS; i++) {
+        if ((i & 1) == 0) {
+            std::cout << std::endl;
+        }
+        std::cout << std::setw(4) << "V" << std::hex << i << ": " 
+        << std::hex << (unsigned int)register_file[i];
+    }
+    std::cout << std::endl << std::endl << "   VF: " << (unsigned int)VF;
+    std::cout << "    I: " << registerI << std::endl << std::endl;
 }
 
 void Chip8::fetch() {
@@ -127,6 +142,13 @@ void Chip8::decode_execute() {
             break;
     }
 }
+
+void Chip8::cycle() {
+    fetch();
+    decode_execute();
+}
+
+
 void Chip8::NOP() {
 }
 void Chip8::CLS_00E0(){

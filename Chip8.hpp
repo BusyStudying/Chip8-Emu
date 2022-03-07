@@ -1,27 +1,30 @@
 #pragma once
-const unsigned int MEMORY_SIZE = 4096;
-const unsigned int BEGIN_PROGRAM_ADDR = 0x200;
-const unsigned int REGISTERS = 16;
-const unsigned int DISPLAY_HEIGHT = 6;
-const unsigned int DISPLAY_WIDTH = 32;
+#include <cstdint>
+const uint32_t MEMORY_SIZE = 4096;
+const uint32_t BEGIN_PROGRAM_ADDR = 0x200;
+const uint32_t REGISTERS = 16;
+const uint32_t DISPLAY_HEIGHT = 6;
+const uint32_t DISPLAY_WIDTH = 32;
 
 class Chip8 {
 public:
     Chip8();
     void Load_ROM(const char *filename);
     void print_memory(void);
+    void print_registers(void);
+    void cycle();
 private:
-    unsigned char mem[MEMORY_SIZE]{};
-    unsigned char register_file[REGISTERS - 1]{};
-    unsigned char VF{};
-    unsigned short pc{};
-    unsigned char sp{};
-    unsigned short stack[16]{};
-    unsigned char DT{};
-    unsigned char ST{};
-    unsigned int display[DISPLAY_WIDTH][DISPLAY_HEIGHT]{};
-    unsigned short instruction{};
-    unsigned short registerI{};
+    uint8_t mem[MEMORY_SIZE]{};
+    uint8_t register_file[REGISTERS - 1]{};
+    uint8_t VF{};
+    uint16_t pc{};
+    uint8_t sp{};
+    uint16_t stack[16]{};
+    uint8_t DT{};
+    uint8_t ST{};
+    uint32_t display[DISPLAY_WIDTH][DISPLAY_HEIGHT]{};
+    uint16_t instruction{};
+    uint16_t registerI{};
 
     void NOP();
     void CLS_00E0();
@@ -49,5 +52,6 @@ private:
     void DRW_Dxyn();
     void fetch();
     void decode_execute();
+    
     
 };
