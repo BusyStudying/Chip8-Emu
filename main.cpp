@@ -1,4 +1,4 @@
-#include "chip8.hpp"
+#include "Chip8.hpp"
 #include <iostream>
 
 int main(int argc, char** argv) {

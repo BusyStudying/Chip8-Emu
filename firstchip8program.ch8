@@ -1,4 +1,4 @@
-LOAD, V0, 10
-LOAD, V1, 20
+LOAD, V0, 2
+LOAD, V1, 15
 ADD, V0, 5
 AND, V0, V1

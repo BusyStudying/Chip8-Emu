@@ -2,3 +2,6 @@
 *.txt
 *.chip8
 *.ch8
+*.o
+*.gch
+*.out

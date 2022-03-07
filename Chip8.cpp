@@ -1,11 +1,13 @@
-#include "chip8.hpp"
-
+#include "Chip8.hpp"
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
-#include <cstdlib>
 
-//using namespace std;
-Chip8::Chip8(){}
+
+Chip8::Chip8() {
+    //pc = 0x200;
+    //instruction = (mem[0x200] << 8) + mem[0x201];
+}
 
 void Chip8::Load_ROM(const char *filename) {
     std::cout << filename << std::endl;
@@ -28,11 +30,14 @@ void Chip8::Load_ROM(const char *filename) {
 }
 
 void Chip8::print_memory() {
-
-    for (int i = 512; i < 600; i++) {
-        std::cout << (int)mem[i] << " ";
-        
+    //print program space in memory
+    for (int i = 0x200; i < 0x600; i++) {
+        std::cout << std::hex << (int)mem[i] << " ";
+        if (i % 20 == 0) {
+            std::cout << std::endl;
+        } 
     }
+    std::cout << "FINISHED\n";
 }
 
 void Chip8::fetch() {
@@ -123,7 +128,6 @@ void Chip8::decode_execute() {
     }
 }
 void Chip8::NOP() {
-
 }
 void Chip8::CLS_00E0(){
     //Clear Display

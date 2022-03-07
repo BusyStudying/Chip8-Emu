@@ -8,7 +8,7 @@ def main():
     #f = args.output
     bytes = assemble(args.input)
     bytes_to_write = bytearray(bytes)
-    with open('output.txt', "wb") as f:
+    with open('out', "wb") as f:
         f.write(bytes_to_write)
     f.close()
 
