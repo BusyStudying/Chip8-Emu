@@ -3,12 +3,13 @@
 const uint32_t MEMORY_SIZE = 4096;
 const uint32_t BEGIN_PROGRAM_ADDR = 0x200;
 const uint32_t REGISTERS = 16;
-const uint32_t DISPLAY_HEIGHT = 6;
-const uint32_t DISPLAY_WIDTH = 32;
+const uint32_t DISPLAY_HEIGHT = 32;
+const uint32_t DISPLAY_WIDTH = 64;
 
 class Chip8 {
 public:
     Chip8();
+    uint8_t keyboard[16]{};
     void Load_ROM(const char *filename);
     void print_memory(void);
     void print_registers(void);
@@ -22,9 +23,9 @@ private:
     uint16_t stack[16]{};
     uint8_t DT{};
     uint8_t ST{};
-    uint32_t display[DISPLAY_WIDTH][DISPLAY_HEIGHT]{};
+    uint32_t display[DISPLAY_WIDTH * DISPLAY_HEIGHT]{};
     uint16_t instruction{};
-    uint16_t registerI{};
+    uint16_t I{};
 
     void NOP();
     void CLS_00E0();
@@ -52,6 +53,15 @@ private:
     void DRW_Dxyn();
     void fetch();
     void decode_execute();
-    
-    
+    void SKP_Ex9E();
+    void SKNP_ExA1();
+    void LD_Fx07();
+    void LD_Fx0A();
+    void LD_Fx15();
+    void LD_Fx18();
+    void ADD_Fx1E();
+    void LD_Fx29();
+    void LD_Fx33();
+    void LD_Fx55();
+    void LD_Fx65();
 };
