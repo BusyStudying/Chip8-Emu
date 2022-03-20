@@ -38,6 +38,10 @@ Chip8::Chip8() {
         mem[FONT_ADDR + i] = font_sprites[i];
     }
 
+    mem[0] = 0xDE;
+    mem[1] = 0xAD;
+    mem[2] = 0xBE;
+    mem[3] = 0xEF;
 
 }
 
@@ -55,8 +59,7 @@ void Chip8::Load_ROM(const char *filename) {
             mem[BEGIN_PROGRAM_ADDR + i] = buffer[i];
         }
         delete[] buffer;
-    }
-    else{
+    } else {
         std::cout<<"Error: File not found"<< std::endl;
     }
 }
@@ -74,8 +77,9 @@ void Chip8::print_memory() {
 }
 
 void Chip8::print_registers() {
-    std::cout << "   PC: " << pc;
-    std::cout << "    SP: " << (uint)sp << std::endl;
+    std::cout << "   PC: " << std::hex << pc;
+    std::cout << "    SP: " << std::hex << (uint)sp << std::endl;
+    std::cout << "   Instruction Register: " << std::hex << instruction << std::endl;
     for (int i = 0; i < REGISTERS; i++) {
         if ((i & 1) == 0) {
             std::cout << std::endl;
@@ -83,8 +87,8 @@ void Chip8::print_registers() {
         std::cout << std::setw(4) << "V" << std::hex << i << ": " 
         << std::hex << (uint)register_file[i];
     }
-    std::cout << std::endl << std::endl << "   VF: " << (uint)VF;
-    std::cout << "    I: " << I << std::endl << std::endl;
+    std::cout << std::endl << std::endl << "   VF: " << std::hex << (uint)VF;
+    std::cout << "    I: " << std::hex << I << std::endl << std::endl;
 }
 
 void Chip8::fetch() {
@@ -95,13 +99,14 @@ void Chip8::fetch() {
 void Chip8::decode_execute() {
     switch((instruction & 0xF000) >> 12) {
         case 0:
-            if (instruction & 0x000F == 0) {
-                CLS_00E0();
-                break;
-            } else {
+            if (instruction & 0x00EE == 0x00EE) {
                 RET_00EE();
-                break;
+            } else if (instruction & 0x00EE == 0x00E0) {
+                CLS_00E0();
+            } else {
+                NOP();
             }
+            break;
         case 1:
             JP_1nnn();
             break;
@@ -168,6 +173,50 @@ void Chip8::decode_execute() {
             break;
         case 12:
             RND_Cxkk();
+            break;
+        case 13:
+            DRW_Dxyn();
+            break;
+        case 14:
+            switch(instruction & 0xFF) {
+                case 0x9E:
+                    SKP_Ex9E();
+                    break;
+                case 0xA1:
+                    SKNP_ExA1();
+                    break;
+            }
+            break;
+        case 15:
+            switch(instruction & 0xFF) {
+                case 0x07:
+                    LD_Fx07();
+                    break;
+                case 0x0A:
+                    LD_Fx0A();
+                    break;
+                case 0x15:
+                    LD_Fx15();
+                    break;
+                case 0x18:
+                    LD_Fx18();
+                    break;
+                case 0x1E:
+                    ADD_Fx1E();
+                    break;
+                case 0x29:
+                    LD_Fx29();
+                    break;
+                case 0x33:
+                    LD_Fx33();
+                    break;
+                case 0x55:
+                    LD_Fx55();
+                    break;
+                case 0x65:
+                    LD_Fx65();
+                    break;
+            }
             break;
         default:
             NOP();
@@ -393,5 +442,11 @@ void Chip8::LD_Fx55() {
 void Chip8::LD_Fx65() {
     for (int i = 0; i < 15; i++) {
         register_file[i] = mem[I + i];
+    }
+}
+
+void Chip8::end_on_NOP() {
+    if (!instruction) {
+        quit = true;
     }
 }
