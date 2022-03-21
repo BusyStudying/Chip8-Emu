@@ -9,13 +9,14 @@ const uint32_t DISPLAY_WIDTH = 64;
 class Chip8 {
 public:
     Chip8();
-    bool quit = false;
+    //bool quit = false;
     uint8_t keyboard[16]{};
+    uint32_t display[DISPLAY_WIDTH * DISPLAY_HEIGHT]{};
     void Load_ROM(const char *filename);
     void print_memory(void);
     void print_registers(void);
     void cycle();
-    void end_on_NOP();
+    //void end_on_NOP();
 private:
     uint8_t mem[MEMORY_SIZE]{};
     uint8_t register_file[REGISTERS - 1]{};
@@ -25,7 +26,6 @@ private:
     uint16_t stack[16]{};
     uint8_t DT{};
     uint8_t ST{};
-    uint32_t display[DISPLAY_WIDTH * DISPLAY_HEIGHT]{};
     uint16_t instruction{};
     uint16_t I{};
 

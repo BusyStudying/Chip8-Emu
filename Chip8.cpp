@@ -33,16 +33,9 @@ uint8_t font_sprites[FONT_SIZE] = {
 
 Chip8::Chip8() {
     pc = PC_START;
-
     for (int i = 0; i < FONT_SIZE; i++) {
         mem[FONT_ADDR + i] = font_sprites[i];
     }
-
-    mem[0] = 0xDE;
-    mem[1] = 0xAD;
-    mem[2] = 0xBE;
-    mem[3] = 0xEF;
-
 }
 
 void Chip8::Load_ROM(const char *filename) {
@@ -97,14 +90,19 @@ void Chip8::fetch() {
 }
 
 void Chip8::decode_execute() {
-    switch((instruction & 0xF000) >> 12) {
+    uint MSN = (instruction & 0xF000) >> 12;
+    switch(MSN) {
         case 0:
-            if (instruction & 0x00EE == 0x00EE) {
-                RET_00EE();
-            } else if (instruction & 0x00EE == 0x00E0) {
-                CLS_00E0();
-            } else {
-                NOP();
+            switch (instruction & 0xFF) { 
+                case 0xE0:
+                    CLS_00E0();
+                    break;
+                case 0xEE:
+                    RET_00EE();
+                    break;
+                default:
+                    NOP();
+                    break;
             }
             break;
         case 1:
@@ -227,6 +225,12 @@ void Chip8::decode_execute() {
 void Chip8::cycle() {
     fetch();
     decode_execute();
+    if (DT > 0) {
+        DT--;
+    }
+    if (ST > 0) {
+        ST--;
+    }
 }
 
 
@@ -238,8 +242,7 @@ void Chip8::CLS_00E0(){
 }
 void Chip8::RET_00EE() {
     //return from subroutine
-    pc = stack[sp];
-    sp -= 1;
+    pc = stack[--sp];
 }
 void Chip8::JP_1nnn() {
     //jump to location nnn
@@ -247,34 +250,26 @@ void Chip8::JP_1nnn() {
 }
 void Chip8::CALL_2nnn() {
     //call subroutine at nnn
-    sp +=1;
-    stack[sp] = pc;
+    stack[sp++] = pc;
     pc = instruction & 0x0FFF;
 
 }
 void Chip8::SE_3xkk() {
     //Skip next instruction if Vx == kk
-
-    uint8_t reg_num = (instruction & 0x0F00) >> 8;
-    uint8_t byte = instruction & 0x00FF;
-    if (register_file[reg_num] == byte){
+    if (Vx == (instruction & 0xFF)){
         pc += 2;
     }
 
 }
 void Chip8::SNE_4xkk() {
     //Skip next instruction if Vx != Vy
-    uint8_t reg_num = (instruction & 0x0F00) >> 8;
-    uint8_t byte = instruction & 0x00FF;
-    if (register_file[reg_num] != byte){
+    if (Vx != (instruction & 0xFF)){
         pc += 2;
     }
 }
 void Chip8::SE_5xy0() {
     //Skip next instruction if Vx == Vy
-    uint8_t reg_x = (instruction & 0x0F00) >> 8;
-    uint8_t reg_y = (instruction & 0x00F0) >> 4;
-    if (register_file[reg_x] == register_file[reg_y]){
+    if (Vx == Vy){
         pc += 2;
     }
 }
@@ -288,15 +283,15 @@ void Chip8::ADD_7xkk() {
 }
 void Chip8::LD_8xy0() {
     //Set Vx = Vy
-    Vx = register_file[(instruction & 0x00F0) >> 4];
+    Vx = Vy;
 }
 void Chip8::OR_8xy1() {
     //Set Vx = Vx bitwise OR Vy
-    Vx =  Vx | Vy;
+    Vx |= Vy;
 }
 void Chip8::AND_8xy2() {
     //Set Vx = Vx bitwise AND Vy
-    Vx =  Vx & Vy;
+    Vx &= Vy;
 }
 void Chip8::XOR_8xy3() {
     //Set Vx = Vx bitwise XOR Vy
@@ -304,7 +299,7 @@ void Chip8::XOR_8xy3() {
 }
 void Chip8::ADD_8xy4() {
     //Set Vx = Vx + Vy, set VF = carry
-    if ((Vx + Vy) > 255) {
+    if (((uint32_t)Vx + (uint32_t)Vy) > 255) {
         VF = 1;
     } else {
         VF = 0;
@@ -324,10 +319,10 @@ void Chip8::SUB_8xy5() {
 void Chip8::SHR_8xy6() {
     //Set Vx = Vx SHR 1
     if (Vx & 1) {
-        VF = 0;
+        VF = 1;
 
     } else {
-        VF = 1;
+        VF = 0;
     }
     Vx = Vx >> 1;
 }
@@ -343,17 +338,16 @@ void Chip8::SUBN_8xy7() {
 
 void Chip8::SHL_8xyE() {
     //Set Vx = Vx SHL 1
-    if (Vx & 1) {
-        VF = 0;
-
-    } else {
+    if (Vx & 0x80) {
         VF = 1;
+    } else {
+        VF = 0;
     }
     Vx = Vx << 1;
 }
 void Chip8::SNE_9xy0() {
     //Skip next instruction if Vx != Vy 
-    if(Vx != register_file[(instruction & 0x0F00) >> 4]) {
+    if(Vx != Vy) {
         pc += 2;
     } 
 }
@@ -372,18 +366,20 @@ void Chip8::RND_Cxkk() {
 }
 void Chip8::DRW_Dxyn() {
     uint32_t nibble = instruction & 0x0F;
+    VF = 0;
+    uint8_t x = Vx % DISPLAY_WIDTH;
+    uint8_t y = Vy % DISPLAY_HEIGHT;
     for (int i = 0; i < nibble; i++) {
         uint32_t sprite_row = mem[I + i];
         for (int j = 0; j < 8; j++) {
             uint32_t pixel = sprite_row & (0x80 >> j);
-            uint display_row = ((Vy % DISPLAY_HEIGHT) + i) * DISPLAY_WIDTH; 
-            uint display_col = ((Vx % DISPLAY_WIDTH) + j);
+            uint display_row = (y + i) * DISPLAY_WIDTH; 
+            uint display_col = x + j;
             if (pixel) {
-                pixel = PIXEL_ON;
                 if (display[display_row + display_col] == PIXEL_ON) {
                     VF = 1;
                 }
-                display[display_row + display_col] ^= pixel;
+                display[display_row + display_col] ^= PIXEL_ON;
             }
         }
     } 
@@ -395,10 +391,8 @@ void Chip8::SKP_Ex9E() {
     }
 }
 void Chip8::SKNP_ExA1() {
-    if (Vx < 15) {
-        if (!keyboard[Vx]) {
-            pc += 2;
-        }
+    if (!keyboard[Vx]) {
+        pc += 2;
     }
 }
 void Chip8::LD_Fx07() { 
@@ -407,11 +401,12 @@ void Chip8::LD_Fx07() {
 void Chip8::LD_Fx0A() { 
     for (int i = 0; i < 15; i++) {
         if (keyboard[i]) {
-           Vx = i; 
-           return;
+            Vx = i;
+            return;
         }
     }
-    pc -= 2;
+	pc -= 2;
+
 }
 void Chip8::LD_Fx15() {
    DT = Vx;
@@ -426,27 +421,27 @@ void Chip8::LD_Fx29() {
     I = (Vx * 5) + FONT_ADDR;
 }
 void Chip8::LD_Fx33() {
-    uint BCD = Vx;
-    int i = 0;
-    while (BCD > 0 && i <= 2) {
+    uint8_t BCD = Vx;
+    int i = 2;
+    while (i >= 0) {
         mem[I + i] = BCD % 10;
         BCD /= 10;
-        i++;
+        i--;
     }
 }
 void Chip8::LD_Fx55() {
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i <= ((instruction & 0x0F00) >> 8); i++) {
         mem[I + i] = register_file[i];
     }
 }
 void Chip8::LD_Fx65() {
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i <= ((instruction & 0x0F00) >> 8); i++) {
         register_file[i] = mem[I + i];
     }
 }
 
-void Chip8::end_on_NOP() {
-    if (!instruction) {
-        quit = true;
-    }
-}
+// void Chip8::end_on_NOP() {
+//     if (!instruction) {
+//         quit = true;
+//     }
+// }
