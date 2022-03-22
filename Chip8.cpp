@@ -38,7 +38,7 @@ Chip8::Chip8() {
     }
 }
 
-void Chip8::Load_ROM(const char *filename) {
+int Chip8::Load_ROM(const char *filename) {
     std::cout << "Loading \"" << filename << "\" into memory" << std::endl;
     std::ifstream fin(filename, std::ios::in|std::ios::binary|std::ios::ate);
     if (fin.is_open()) {
@@ -52,8 +52,10 @@ void Chip8::Load_ROM(const char *filename) {
             mem[BEGIN_PROGRAM_ADDR + i] = buffer[i];
         }
         delete[] buffer;
+        return 1;
     } else {
         std::cout<<"Error: File not found"<< std::endl;
+        return 0;
     }
 }
 
@@ -225,6 +227,9 @@ void Chip8::decode_execute() {
 void Chip8::cycle() {
     fetch();
     decode_execute();
+}
+
+void Chip8::update_timers() {
     if (DT > 0) {
         DT--;
     }
@@ -233,12 +238,14 @@ void Chip8::cycle() {
     }
 }
 
-
 void Chip8::NOP() {
 }
 void Chip8::CLS_00E0(){
     //Clear Display
-    memset(display, 0, sizeof(display)); 
+    //for(int i = 0; i < (DISPLAY_HEIGHT * DISPLAY_WIDTH); i++) {
+    //    display[i] = 0;
+    //}
+    memset(display, 0, sizeof(display));
 }
 void Chip8::RET_00EE() {
     //return from subroutine
@@ -399,20 +406,19 @@ void Chip8::LD_Fx07() {
     Vx = DT;
 }
 void Chip8::LD_Fx0A() { 
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i < 16; i++) {
         if (keyboard[i]) {
             Vx = i;
             return;
         }
     }
 	pc -= 2;
-
 }
 void Chip8::LD_Fx15() {
-   DT = Vx;
+    DT = Vx;
 }
 void Chip8::LD_Fx18() {
-   ST = Vx;
+    ST = Vx;
 }
 void Chip8::ADD_Fx1E() {
     I += Vx;
@@ -439,9 +445,3 @@ void Chip8::LD_Fx65() {
         register_file[i] = mem[I + i];
     }
 }
-
-// void Chip8::end_on_NOP() {
-//     if (!instruction) {
-//         quit = true;
-//     }
-// }

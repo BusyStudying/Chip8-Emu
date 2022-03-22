@@ -6,17 +6,17 @@ const uint32_t REGISTERS = 16;
 const uint32_t DISPLAY_HEIGHT = 32;
 const uint32_t DISPLAY_WIDTH = 64;
 
+
 class Chip8 {
 public:
     Chip8();
-    //bool quit = false;
     uint8_t keyboard[16]{};
     uint32_t display[DISPLAY_WIDTH * DISPLAY_HEIGHT]{};
-    void Load_ROM(const char *filename);
+    int Load_ROM(const char *filename);
     void print_memory(void);
     void print_registers(void);
     void cycle();
-    //void end_on_NOP();
+    void update_timers();
 private:
     uint8_t mem[MEMORY_SIZE]{};
     uint8_t register_file[REGISTERS - 1]{};
